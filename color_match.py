@@ -1,4 +1,4 @@
-# TODO update comments, add headers for different scores
+# TODO update comments
 
 
 import pygame
@@ -49,8 +49,6 @@ class Game:
         # --- Match and mismatch score
         self.match_score = 0
         self.mismatch_score = 0
-        self.top_scoreboard = scoreboard_render(self.match_score)
-        self.bot_scoreboard = scoreboard_render(self.mismatch_score)
 
         # --- Tiles
 
@@ -63,7 +61,7 @@ class Game:
         # find the size of tiles needed
         dimensions = [space_between_tiles[0] - spacing, space_between_tiles[1] - spacing]
 
-        # create a list containing the names of the front_color files for all cards twice, as well as hidden front_color
+        # create a list containing the color codes for all the possible colors of the cards, and assign the hidden color
         self.colors = [pygame.Color("red"), pygame.Color("yellow"), pygame.Color("blue"), pygame.Color("green")]
         hidden_color = pygame.Color("white")
 
@@ -94,7 +92,7 @@ class Game:
             # play frame
             self.handle_events()
 
-            # if all tiles have not yet been revealed
+            # if not yet at 5 mismatches
             if self.continue_game:
                 self.decide_continue()
                 self.draw()
@@ -125,24 +123,27 @@ class Game:
             tile.draw()
 
         # draw scores to screen
-        self.surface.blit(self.top_scoreboard, (self.surface.get_size()[0] - self.top_scoreboard.get_size()[0], 0))
-        self.surface.blit(self.bot_scoreboard, (self.surface.get_size()[0] - self.bot_scoreboard.get_size()[0], 50))
+
+        # update the scoreboards
+        top_scoreboard = scoreboard_render(self.match_score, "Matched")
+        bot_scoreboard = scoreboard_render(self.mismatch_score, "Mismatched")
+
+        # draw scoreboards to screen
+        self.surface.blit(top_scoreboard, (self.surface.get_size()[0] - top_scoreboard.get_size()[0], 0))
+        self.surface.blit(bot_scoreboard, (self.surface.get_size()[0] - bot_scoreboard.get_size()[0], 50))
 
         pygame.display.update()  # make the updated surface appear on the display
 
-    # this method is responsible for updating all game objects that are not influenced directly by the player
+    # this method is responsible for updating all game interactions that are not influenced directly by the player
     def update(self):
 
-        # check if active cards are matching
+        # check if active cards are matching, and perform relevant actions if so or if not.
         self.match_check()
 
-        # update the scoreboards
-        self.top_scoreboard = scoreboard_render(self.match_score)
-        self.bot_scoreboard = scoreboard_render(self.mismatch_score)
-
-    # this method checks if the active cards are matching, if not, it waits one second before hiding them again
+    # this method checks if the active tiles are matching, if not, it waits one second before hiding them again
     def match_check(self):
-        # check if more than one card is active, if so, check if they match
+
+        # check if more than one tile is active, if so, check if they match
         if len(self.active_tiles) > 1:
             tile1, tile2 = self.active_tiles
             pair = tile1.pair_check(tile2)
@@ -153,7 +154,7 @@ class Game:
             else:  # if not pair
                 self.mismatch_score += 1
 
-            # randomize the true colors of the tiles and flip them back to hidden
+            # randomize the true colors of the tiles and flip them back to hidden regardless of if they matched or not
             tiles = [tile1, tile2]
             for tile in tiles:
                 tile.color_change(random.choice(self.colors))
@@ -183,18 +184,18 @@ class Game:
                 self.active_tiles.append(tile)
 
 
-# this class represents one tile in the memory game
+# this class represents one tile in the color match game
 # a tile has a front and a back side
 # a tile can either be face up or face down
-# a tile displays the side that is currently up
+# a tile displays the color of the side that is currently up
 # a tile is a rectangle of a specified size
 # a tile is located at a specific location on the screen
 class Tile:
 
     # dimensions is a list containing the dimensions of the tile in [width, height] format
     # location is a list containing the coordinates for the top left corner of the tile in [x, y] format
-    # front_color is a string containing the name of the front_color file for the front side of the tile
-    # hidden_color is a string containing the name of the front_color file for the back side of the tile
+    # front_color is a color code for the color of the front side of the tile
+    # hidden_color is a color code for the color of the back side of the tile
     # screen is the surface the tile will be drawn to
     def __init__(self, dimensions, location, front_color, hidden_color, screen):
         self.rect = pygame.Rect(location, dimensions)
@@ -268,15 +269,21 @@ def find_tile_spacing(tiles_per_row, tiles_per_column, space_between, screen):
     return tile_spacing
 
 
-# this method creates a surface containing a number indicating the amount of seconds since the game started
-def scoreboard_render(score):
+# score is an int containing the value of the score to be displayed
+# title is a string containing the title of the score
+
+# this method creates a surface containing a surface displaying a score and the title of that score as "title: score"
+def scoreboard_render(score, title):
     # Text settings
     font_size = 60
     font = pygame.font.SysFont("arial", font_size)
     color = pygame.Color("white")
 
+    # combine score and title
+    titled_score = title + ": " + str(score)
+
     # render the score
-    scoreboard = pygame.font.Font.render(font, str(score), True, color)
+    scoreboard = pygame.font.Font.render(font, titled_score, True, color)
     return scoreboard
 
 
