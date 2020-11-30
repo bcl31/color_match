@@ -1,4 +1,10 @@
-# TODO update comments
+# This program is a simple matching game. When the player clicks on one of the two tiles, the tile will turn a random
+# color, once both tiles have been activated in this way, the game check if the tiles are matching, if so, the player
+# gains one "matching" score, otherwise, the player gains one "mismatching" score. The game ends when the player's
+# mismatching score is equal to 5
+
+# note, this program was written using my memory.py program as a framework, as I originally wrote it with versatility
+# in mind and there is significant overlap in what needs to be done in each.
 
 
 import pygame
@@ -35,7 +41,7 @@ class Game:
         # - self is the Game to initialize
         # - surface is the display window surface object
 
-        # === objects that are part of every game that we will discuss
+        # === objects and attributes that are part of every game that we will discuss
         self.surface = surface
         self.bg_color = pygame.Color('black')
 
@@ -44,7 +50,7 @@ class Game:
         self.close_clicked = False
         self.continue_game = True
 
-        # === objects that are only a part of memory
+        # === objects and attributes that are only a part of color match
 
         # --- Match and mismatch score
         self.match_score = 0
@@ -82,6 +88,24 @@ class Game:
 
         # create an attribute to track tiles currently 'active' (not covered and not matched)
         self.active_tiles = []
+
+    # score is an int containing the value of the score to be displayed
+    # title is a string containing the title of the score
+
+    # this method creates a surface displaying a score and the title of that score as "title: score"
+    # noinspection PyMethodMayBeStatic
+    def scoreboard_render(self, score, title):
+        # Text settings
+        font_size = 60
+        font = pygame.font.SysFont("arial", font_size)
+        color = pygame.Color("white")
+
+        # combine score and title
+        titled_score = title + ": " + str(score)
+
+        # render the score
+        scoreboard = pygame.font.Font.render(font, titled_score, True, color)
+        return scoreboard
 
     # this method handles the loop of all processes that occur every frame
     def play(self):
@@ -125,8 +149,8 @@ class Game:
         # draw scores to screen
 
         # update the scoreboards
-        top_scoreboard = scoreboard_render(self.match_score, "Matched")
-        bot_scoreboard = scoreboard_render(self.mismatch_score, "Mismatched")
+        top_scoreboard = self.scoreboard_render(self.match_score, "Matched")
+        bot_scoreboard = self.scoreboard_render(self.mismatch_score, "Mismatched")
 
         # draw scoreboards to screen
         self.surface.blit(top_scoreboard, (self.surface.get_size()[0] - top_scoreboard.get_size()[0], 0))
@@ -140,7 +164,7 @@ class Game:
         # check if active cards are matching, and perform relevant actions if so or if not.
         self.match_check()
 
-    # this method checks if the active tiles are matching, if not, it waits one second before hiding them again
+    # this method checks if the active tiles are matching, then increments the correlating score before resetting them
     def match_check(self):
 
         # check if more than one tile is active, if so, check if they match
@@ -160,6 +184,7 @@ class Game:
                 tile.color_change(random.choice(self.colors))
                 tile.flip()
 
+            # wait for 1 second before continuing, so that player can see the tiles colors
             time.sleep(1)
 
             # clear the tiles from the active tile list regardless
@@ -175,10 +200,12 @@ class Game:
     # this method should only be called when a mouse down event is detected. when called, it checks if the mouse
     # position is currently over any of the tiles, if so, it flips the tile and adds it to the active tile list
     def click_check(self):
+
         # check if mouse is colliding with any hidden tiles
         mouse_position = pygame.mouse.get_pos()
         for tile in self.deck:
             if tile.collision_check(mouse_position) and tile.check_hidden():
+
                 # if so, flip tile and mark it as active
                 tile.flip()
                 self.active_tiles.append(tile)
@@ -206,6 +233,7 @@ class Tile:
 
     # this method is responsible for drawing the tile to the screen
     def draw(self):
+
         # if the tile is hidden (face-down) set the color to the backside, otherwise set the color to the front side
         if self.hidden:
             color = self.hidden_color
@@ -230,15 +258,19 @@ class Tile:
         return self.hidden
 
     # this method returns the name of the true_color shown on the front of the card
-    def get_image_name(self):
+    def get_color(self):
         return self.true_color
 
     # tile is an object containing information about the tile this tile is being checked against
 
     # this method checks if the tile provided has the same front_color as itself. if so, it returns True, else False
     def pair_check(self, tile):
-        other_color = tile.get_image_name()
+
+        # get the colors to check
+        other_color = tile.get_color()
         this_color = self.true_color
+
+        # check if colors match, and return boolean true or false accordingly
         if this_color == other_color:
             match = True
         else:  # if this_color != other_color
@@ -267,24 +299,6 @@ def find_tile_spacing(tiles_per_row, tiles_per_column, space_between, screen):
     tile_spacing[0] = dimensions[0] // tiles_per_row
     tile_spacing[1] = dimensions[1] // tiles_per_column
     return tile_spacing
-
-
-# score is an int containing the value of the score to be displayed
-# title is a string containing the title of the score
-
-# this method creates a surface containing a surface displaying a score and the title of that score as "title: score"
-def scoreboard_render(score, title):
-    # Text settings
-    font_size = 60
-    font = pygame.font.SysFont("arial", font_size)
-    color = pygame.Color("white")
-
-    # combine score and title
-    titled_score = title + ": " + str(score)
-
-    # render the score
-    scoreboard = pygame.font.Font.render(font, titled_score, True, color)
-    return scoreboard
 
 
 main()
