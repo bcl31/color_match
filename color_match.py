@@ -93,7 +93,6 @@ class Game:
     # title is a string containing the title of the score
 
     # this method creates a surface displaying a score and the title of that score as "title: score"
-    # noinspection PyMethodMayBeStatic
     def scoreboard_render(self, score, title):
         # Text settings
         font_size = 60
